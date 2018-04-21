@@ -6,10 +6,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Scanner;
 
 public class GamePanel extends JPanel implements ActionListener {
     static int gameMode = 0;
@@ -25,6 +29,8 @@ public class GamePanel extends JPanel implements ActionListener {
     int score = 0;
     double g = 9.8;
     long StartTime;
+    String gameScoreFile = "file.lol";
+    int maxScore = reedScoreFromFile();
     LinkedList<PipePair> pipes = new LinkedList<>();
 
     GamePanel() {
@@ -62,6 +68,10 @@ public class GamePanel extends JPanel implements ActionListener {
             drawPipes(graphics);
             if (checkLost(Coordinate)) {
                 gameMode = 2;
+                if (score > maxScore){
+                    saveScoreToFile();
+                    maxScore = score;
+                }
             }
             processScore();
             graphics.setFont(new Font("TimesRoman", Font.BOLD,40));
@@ -73,7 +83,7 @@ public class GamePanel extends JPanel implements ActionListener {
         } else if (gameMode == 2) {
             graphics.setColor(Color.black);
             graphics.setFont(new Font("TimesRoman", Font.BOLD, 35));
-            String pauseText = "*вы нецензурно бранитесь*  ваш счёт:" + score;
+            String pauseText = "*вы нецензурно бранитесь*  ваш счёт:" + score + "   а ваш рекорд" + maxScore;
             graphics.drawString(
                     pauseText,
                     width / 2 - graphics.getFontMetrics().stringWidth(pauseText) / 2,
@@ -129,7 +139,7 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
     }
-    void processScore() {
+     void processScore() {
         Iterator<PipePair> iterator = pipes.iterator();
         while (iterator.hasNext()) {
             PipePair pipe = iterator.next();
@@ -142,7 +152,25 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
     }
+    void saveScoreToFile() {
+        try {
+            PrintWriter printWriter = new PrintWriter(gameScoreFile);
+            printWriter.write(String.valueOf(score));
+            printWriter.close();
 
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    int reedScoreFromFile() {
+        try {
+            Scanner scanner = new Scanner(new FileInputStream(gameScoreFile));
+            return scanner.nextInt();
+        } catch (FileNotFoundException e) {
+            return -1;
+        }
+
+    }
     void drawPipes(Graphics graphics) {
         graphics.setColor(Color.GREEN);
         Iterator<PipePair> iterator = pipes.iterator();
